@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
  */
 @RestController  // REST控制器，返回JSON数据
 @RequestMapping("/api/user")  // 用户API路径前缀
-@CrossOrigin(origins = "*")  // 允许跨域访问
+ // 允许跨域访问
 @Tag(name = "用户管理", description = "用户相关操作，包括登录认证、权限验证等功能")  // Swagger API分组
 public class UserController {
     

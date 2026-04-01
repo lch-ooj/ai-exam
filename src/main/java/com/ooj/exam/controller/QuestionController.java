@@ -38,7 +38,7 @@ import java.util.stream.Collectors;
  */
 @RestController  // @Controller + @ResponseBody，表示这是一个 REST 控制器，返回 JSON 数据
 @RequestMapping("/api/questions")  // 设置基础 URL 路径，所有方法的 URL 都以此开头
-@CrossOrigin(origins = "*")  // 允许跨域访问，解决前后端分离开发中的跨域问题
+ // 允许跨域访问，解决前后端分离开发中的跨域问题
 @Tag(name = "题目管理", description = "题目相关的增删改查操作，包括分页查询、随机获取、热门推荐等功能")  // Swagger 标签，用于分组显示 API
 public class QuestionController {
 

@@ -16,7 +16,7 @@ import java.util.List;
  * 包括分类的增删改查、树形结构展示等功能
  */
 @RestController  // REST控制器，返回JSON数据
-@CrossOrigin  // 允许跨域访问
+  // 允许跨域访问
 @RequestMapping("/api/categories")  // 分类API路径前缀
 @Tag(name = "分类管理", description = "题目分类相关操作，包括分类的增删改查、树形结构管理等功能")  // Swagger API分组
 public class CategoryController {

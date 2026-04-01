@@ -13,6 +13,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 /**
  * 试卷控制器 - 处理试卷管理相关的HTTP请求
  * 包括试卷的CRUD操作、AI智能组卷、状态管理等功能
@@ -22,43 +24,92 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "试卷管理", description = "试卷相关操作，包括创建、查询、更新、删除，以及AI智能组卷功能")  // Swagger API分组
 public class PaperController {
 
-
+    @Autowired
+    private PaperService paperService;
 
     /**
      * 获取所有试卷列表（支持模糊搜索和状态筛选）
+     * 两个参数都不一定有
      */
-    @GetMapping("/list")  // 处理GET请求
+    @GetMapping("/list")  // 处理 GET 请求
     @Operation(summary = "获取试卷列表", description = "支持按名称模糊搜索和状态筛选的试卷列表查询")  // API描述
-    public Result<java.util.List<Paper>> listPapers(
+    public Result<List<Paper>> listPapers(
             @Parameter(description = "试卷名称，支持模糊查询") @RequestParam(required = false) String name,
             @Parameter(description = "试卷状态，可选值：DRAFT/PUBLISHED/STOPPED") @RequestParam(required = false) String status) {
 
-        return Result.success(null);
+        QueryWrapper<Paper> queryWrapper = new QueryWrapper<>();
+
+        // 按名称模糊查询
+        if (StringUtils.hasText(name)) {
+            queryWrapper.like("name", name);
+        }
+
+        // 按状态精确查询
+        if (StringUtils.hasText(status)) {
+            queryWrapper.eq("status", status);
+        }
+
+        // 按创建时间倒序排列
+        queryWrapper.orderByDesc("create_time");
+
+        List<Paper> papers = paperService.list(queryWrapper);
+        return Result.success(papers);
     }
+
+    /**
+     * 获取试卷详情（包含题目）
+     */
+    @GetMapping("/{id}")  // 处理 GET 请求
+    @Operation(summary = "获取试卷详情", description = "获取试卷的详细信息，包括试卷基本信息和包含的所有题目")  // API描述
+    public Result<Paper> getPaperById(@Parameter(description = "试卷 ID") @PathVariable Integer id) {
+        Paper paper = paperService.getPaperDetail(id);
+        return Result.success(paper);
+    }
+
+    /**
+     * 更新试卷状态（发布/停止）
+     * @param id 试卷 ID
+     * @param status 新的状态
+     * @return 操作结果
+     */
+    @PostMapping("/{id}/status")  // 处理 POST 请求
+    @Operation(summary = "更新试卷状态", description = "修改试卷状态：发布试卷供学生考试或停止试卷禁止考试")  // API描述
+    public Result<Void> updatePaperStatus(
+            @Parameter(description = "试卷 ID") @PathVariable Integer id,
+            @Parameter(description = "新的状态，可选值：PUBLISHED/DRAFT") @RequestParam String status) {
+
+        paperService.updatePaperStatus(id, status);
+        return Result.success(null, "状态更新成功");
+    }
+
+
+    /**
+     * 更新试卷
+     * @param id 试卷 ID
+     * @param paperVo 试卷更新数据
+     * @return 操作结果
+     */
+    @PutMapping("/{id}")  // 处理 PUT 请求
+    @Operation(summary = "更新试卷信息", description = "更新试卷的基本信息和题目配置")  // API描述
+    public Result<Paper> updatePaper(
+            @Parameter(description = "试卷 ID") @PathVariable Integer id,
+            @RequestBody PaperVo paperVo) {
+
+        Paper paper = paperService.updatePaper(id, paperVo);
+        return Result.success(paper, "试卷更新成功");
+    }
+
 
     /**
      * 手动创建试卷
      */
-    @PostMapping  // 处理POST请求
+    @PostMapping  // 处理 POST 请求
     @Operation(summary = "手动创建试卷", description = "通过手动选择题目的方式创建试卷")  // API描述
     public Result<Paper> createPaper(@RequestBody PaperVo paperVo) {
-
-        return Result.success(null, "试卷创建成功");
+        Paper paper = paperService.createPaper(paperVo);
+        return Result.success(paper, "试卷创建成功");
     }
 
-    /**
-     * 更新试卷
-     * @param id 试卷ID
-     * @param paperVo 试卷更新数据
-     * @return 操作结果
-     */
-    @PutMapping("/{id}")  // 处理PUT请求
-    @Operation(summary = "更新试卷信息", description = "更新试卷的基本信息和题目配置")  // API描述
-    public Result<Paper> updatePaper(
-            @Parameter(description = "试卷ID") @PathVariable Integer id, 
-            @RequestBody PaperVo paperVo) {
-        return Result.success(null, "试卷更新成功");
-    }
 
     /**
      * AI智能组卷（新版）
@@ -71,28 +122,7 @@ public class PaperController {
         return Result.success(null, "AI智能组卷成功");
     }
 
-    /**
-     * 获取试卷详情（包含题目）
-     */
-    @GetMapping("/{id}")  // 处理GET请求
-    @Operation(summary = "获取试卷详情", description = "获取试卷的详细信息，包括试卷基本信息和包含的所有题目")  // API描述
-    public Result<Paper> getPaperById(@Parameter(description = "试卷ID") @PathVariable Integer id) {
-        return Result.success(null);
-    }
 
-    /**
-     * 更新试卷状态（发布/停止）
-     * @param id 试卷ID
-     * @param status 新的状态
-     * @return 操作结果
-     */
-    @PostMapping("/{id}/status")  // 处理POST请求
-    @Operation(summary = "更新试卷状态", description = "修改试卷状态：发布试卷供学生考试或停止试卷禁止考试")  // API描述
-    public Result<Void> updatePaperStatus(
-            @Parameter(description = "试卷ID") @PathVariable Integer id, 
-            @Parameter(description = "新的状态，可选值：PUBLISHED/STOPPED") @RequestParam String status) {
-        return Result.success(null, "状态更新成功");
-    }
 
     /**
      * 删除试卷

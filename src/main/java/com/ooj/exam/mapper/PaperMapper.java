@@ -2,7 +2,11 @@ package com.ooj.exam.mapper;
 
 import com.ooj.exam.entity.Paper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.ooj.exam.entity.PaperQuestion;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
 
 /**
 * @author 86158

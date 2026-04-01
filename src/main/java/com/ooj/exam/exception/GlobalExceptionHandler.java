@@ -11,7 +11,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public Result exception(Exception e) {
         log.error("全局异常信息:", e);
-        return Result.error("出现异常"+e.getMessage());
+        return Result.error("出现异常："+e.getMessage());
     }
 
 

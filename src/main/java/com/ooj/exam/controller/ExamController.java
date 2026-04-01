@@ -18,7 +18,7 @@ import java.util.List;
  */
 @RestController  // REST控制器，返回JSON数据
 @RequestMapping("/api/exams")  // 考试API路径前缀
-@CrossOrigin(origins = "*")  // 允许跨域访问
+ // 允许跨域访问
 @Tag(name = "考试管理", description = "考试流程相关操作，包括开始考试、答题提交、AI批阅、成绩查询等功能")  // Swagger API分组
 public class ExamController {
 
