@@ -3,6 +3,7 @@ package com.ooj.exam.service;
 import com.ooj.exam.entity.Question;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.ooj.exam.vo.AiGenerateRequestVo;
 import com.ooj.exam.vo.QuestionImportVo;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -114,4 +115,11 @@ public interface QuestionService extends IService<Question> {
      * @return
      */
     int importQuestions(List<QuestionImportVo> questions);
+
+    /**
+     * 使用AI生成题目
+     * @param request
+     * @return
+     */
+    List<QuestionImportVo> aiGenerateQuestions(AiGenerateRequestVo request) throws InterruptedException;
 }

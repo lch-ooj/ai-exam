@@ -87,7 +87,7 @@
             <version>5.2.4</version>
         </dependency>
 
-        <!-- HTTP客户端 - 用于调用Kimi API -->
+        <!-- HTTP客户端 - 用于调用ai API -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-webflux</artifactId>

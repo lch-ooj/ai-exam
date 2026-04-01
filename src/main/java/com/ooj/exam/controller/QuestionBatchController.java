@@ -35,6 +35,8 @@ public class QuestionBatchController {
     @Autowired
     private QuestionService questionService;
 
+
+
     /**
      * 下载Excel导入模板
      * @return Excel模板文件
@@ -93,9 +95,9 @@ public class QuestionBatchController {
     @PostMapping("/ai-generate")  // 处理POST请求
     @Operation(summary = "AI智能生成题目", description = "使用AI技术根据指定主题和要求智能生成题目，支持预览后再决定是否导入")  // API描述
     public Result<List<QuestionImportVo>> generateQuestionsByAi(
-            @RequestBody @Validated AiGenerateRequestVo request) {
-
-       return Result.error("AI生成题目失败");
+            @RequestBody @Validated AiGenerateRequestVo request) throws InterruptedException {
+        List<QuestionImportVo> list = questionService.aiGenerateQuestions(request);
+        return Result.success(list);
     }
     
 

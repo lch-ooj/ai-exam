@@ -1,5 +1,7 @@
 package com.ooj.exam.service.impl;
 
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.ooj.exam.common.CacheConstants;
@@ -10,8 +12,10 @@ import com.ooj.exam.mapper.QuestionChoiceMapper;
 import com.ooj.exam.mapper.QuestionMapper;
 import com.ooj.exam.service.QuestionService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.ooj.exam.service.QwenAiService;
 import com.ooj.exam.utils.ExcelUtil;
 import com.ooj.exam.utils.RedisUtils;
+import com.ooj.exam.vo.AiGenerateRequestVo;
 import com.ooj.exam.vo.QuestionImportVo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,6 +48,9 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
 
     @Autowired
     private PaperQuestionMapper paperQuestionMapper;
+
+    @Autowired
+    private QwenAiService qwenAiService;
 
 
     @Override
@@ -494,11 +501,62 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
         return question;
     }
 
+    /**
+     * ai生成题目
+     * @param request
+     * @return
+     * @throws InterruptedException
+     */
+    @Override
+    public List<QuestionImportVo> aiGenerateQuestions(AiGenerateRequestVo request) throws InterruptedException {
+        //1.生成提示词
+        String prompt = qwenAiService.buildPrompt(request);
+        //2.获取ai模型返回结果
+        String response = qwenAiService.callQwenAi(prompt);
+        //3.解析结果
+        //3.1判定开始（'''json）和结束位置（'''）
+        int startIndex = response.indexOf("```json");
+        int endIndex = response.lastIndexOf("```");
+        if (startIndex != 1 && endIndex != -1 && startIndex < endIndex) {
+            //结构正确
+            String json = response.substring(startIndex + 7, endIndex);
+            JSONObject jsonObject = JSONObject.parseObject(json);
+            JSONArray questions = jsonObject.getJSONArray("questions");
+            List<QuestionImportVo> questionImportVoList = new ArrayList<>();
+            for (int i = 0; i < questions.size(); i++){
+                JSONObject questionJson = questions.getJSONObject(i);
+                QuestionImportVo questionImportVo = new QuestionImportVo();
+                questionImportVo.setTitle(questionJson.getString("title"));
+                questionImportVo.setType(questionJson.getString("type"));
+                questionImportVo.setMulti(questionJson.getBoolean("multi"));
+                questionImportVo.setCategoryId(request.getCategoryId());
+                questionImportVo.setDifficulty(questionJson.getString("difficulty"));
+                questionImportVo.setScore(questionJson.getInteger("score"));
+                questionImportVo.setAnswer(questionJson.getString("answer"));
+                questionImportVo.setKeywords(questionJson.getString("analysis"));
+                //选择题选项
+                if ("CHOICE".equals(questionImportVo.getType())){
+                    JSONArray choices = questionJson.getJSONArray("choices");
+                    if (choices != null && !choices.isEmpty()) {
+                        List<QuestionImportVo.ChoiceImportDto> choiceImportDtos = new ArrayList<>();
+                        for (int j = 0; j < choices.size(); j++) {
+                            JSONObject choiceJson = choices.getJSONObject(j);
+                            QuestionImportVo.ChoiceImportDto choiceImportDto = new QuestionImportVo.ChoiceImportDto();
+                            choiceImportDto.setContent(choiceJson.getString("content"));
+                            choiceImportDto.setIsCorrect(choiceJson.getBoolean("isCorrect"));
+                            choiceImportDto.setSort(choiceJson.getInteger("sort"));
+                            choiceImportDtos.add(choiceImportDto);
+                        }
+                        questionImportVo.setChoices(choiceImportDtos);
+                    }
+                }
+                questionImportVoList.add(questionImportVo);
+            }
+            return questionImportVoList;
+        }
 
-
-
-
-
+        throw new RuntimeException("数据结构错误，内容为：%s".formatted(response));
+    }
 
 
 }
