@@ -219,20 +219,47 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
         }
 
         Long questionId = question.getId();
+        System.out.println(question);
 
-        // 3. 保存选项（如果是选择题）
+        // 3. 处理选择题：根据选项的 isCorrect 字段构建答案
         if ("CHOICE".equals(question.getType())) {
-            for (QuestionChoice choice : question.getChoices()) {
-                choice.setQuestionId(questionId);
-                questionChoiceMapper.insert(choice);
-            }
-        }
+            if (question.getChoices() != null && !question.getChoices().isEmpty()) {
+                // 保存所有选项
+                for (int i = 0; i < question.getChoices().size(); i++) {
+                    QuestionChoice choice = question.getChoices().get(i);
+                    choice.setQuestionId(questionId);
+                    choice.setSort(i);
+                    questionChoiceMapper.insert(choice);
+                }
 
-        // 4. 保存答案
-        QuestionAnswer answer = question.getAnswer();
-        if (answer != null) {
-            answer.setQuestionId(questionId);
-            questionAnswerMapper.insert(answer);
+                // 根据 isCorrect 字段提取正确答案标识（A,B,C,D）
+                StringBuilder correctAnswer = new StringBuilder();
+                for (int i = 0; i < question.getChoices().size(); i++) {
+                    QuestionChoice choice = question.getChoices().get(i);
+                    if (choice.getIsCorrect() != null && choice.getIsCorrect()) {
+                        // 将索引转换为选项标识：0->A, 1->B, 2->C, 3->D
+                        char optionLabel = (char) ('A' + i);
+                        if (correctAnswer.length() > 0) {
+                            correctAnswer.append(",");
+                        }
+                        correctAnswer.append(optionLabel);
+                    }
+                }
+
+                // 创建答案对象
+                QuestionAnswer answer = new QuestionAnswer();
+                answer.setQuestionId(questionId);
+                answer.setAnswer(correctAnswer.toString());
+                questionAnswerMapper.insert(answer);
+            }
+        } else {
+            // 4. 判断题和简答题：直接保存答案
+            QuestionAnswer answer = question.getAnswer();
+            log.info("==============================保存答案：{}", answer);
+            if (answer != null) {
+                answer.setQuestionId(questionId);
+                questionAnswerMapper.insert(answer);
+            }
         }
 
         return question;
@@ -458,6 +485,7 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
         }
         for (QuestionImportVo importVo : questionImportVoList){
             try {
+                System.out.println("====================="+importVo);
                 Question question = questionImportVoToQuestion(importVo);
                 createQuestionWithDetails(question);
                 count++;
@@ -496,6 +524,17 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
                 choices.add(choice);
             }
             question.setChoices(choices);
+
+        } else {
+            // 判断题和简答题：需要给answer字段赋值
+            if (importVo.getAnswer() != null && !importVo.getAnswer().isEmpty()) {
+                QuestionAnswer answer = new QuestionAnswer();
+                answer.setAnswer(importVo.getAnswer());
+                if ("TEXT".equals(importVo.getType())) {
+                    answer.setKeywords(importVo.getKeywords());
+                }
+                question.setAnswer(answer);
+            }
         }
 
         return question;
@@ -533,6 +572,7 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
                 questionImportVo.setDifficulty(questionJson.getString("difficulty"));
                 questionImportVo.setScore(questionJson.getInteger("score"));
                 questionImportVo.setAnswer(questionJson.getString("answer"));
+                log.info("==========================answer=================:{}", questionImportVo.getAnswer());
                 questionImportVo.setKeywords(questionJson.getString("analysis"));
                 //选择题选项
                 if ("CHOICE".equals(questionImportVo.getType())){

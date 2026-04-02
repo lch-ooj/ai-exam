@@ -187,46 +187,23 @@ public class PaperServiceImpl extends ServiceImpl<PaperMapper, Paper> implements
             throw new IllegalArgumentException("试卷不存在");
         }
         //2.questionMapper定义一个多表查询， 根据试卷id查询对应的题目集合
-
-        // 2. 查询试卷 - 题目关联
-        List<PaperQuestion> paperQuestions = paperQuestionMapper.selectList(
-                new QueryWrapper<PaperQuestion>().eq("paper_id", id)
-        );
-
-        if (paperQuestions == null || paperQuestions.isEmpty()) {
-            paper.setQuestions(new ArrayList<>());
+        System.out.println(id);
+        List<Question> questions = questionMapper.customQueryQuestionListByPaperId(id);
+        log.info("查询试卷 {} 的题目成功，题目数量：{}", id, questions.size());
+        System.out.println(questions);
+        if (questions == null || questions.isEmpty()){
+            paper.setQuestions(new ArrayList<Question>());
+            log.warn("试卷 {} 没有题目", id);
             return paper;
         }
 
-        // 3. 构建题目 ID 到分值的映射
-        Map<Long, BigDecimal> scoreMap = paperQuestions.stream()
-                .collect(Collectors.toMap(PaperQuestion::getQuestionId, PaperQuestion::getScore));
+        // 3. 按题目类型排序：选择题 -> 判断题 -> 简答题
+        questions.sort((o1, o2) -> Integer.compare(getTypeOrder(o1.getType()),getTypeOrder(o2.getType())));
 
-        // 4. 获取所有题目 ID
-        List<Long> questionIds = paperQuestions.stream()
-                .map(PaperQuestion::getQuestionId)
-                .collect(Collectors.toList());
-
-        // 5. 查询题目详细信息（selectBatchIds 不保证顺序，需要手动排序）
-        List<Question> questions = questionMapper.selectBatchIds(questionIds);
-
-        // 6. 为每个题目设置其在试卷中的分值
-        for (Question question : questions) {
-            BigDecimal score = scoreMap.get(question.getId());
-            question.setPaperScore(score);
-        }
-
-        // 7. 按题目类型排序：选择题 -> 判断题 -> 简答题
-        questions.sort((q1, q2) -> {
-            int order1 = getTypeOrder(q1.getType());
-            int order2 = getTypeOrder(q2.getType());
-            return Integer.compare(order1, order2);
-        });
-
-        // 8. 设置排序后的题目列表
+        // 4. 设置排序后的题目列表
         paper.setQuestions(questions);
 
-        log.debug("试卷详情查询成功，试卷 ID: {}, 题目数量：{}, 排序后题目类型顺序：{}",
+        log.info("试卷详情查询成功，试卷 ID: {}, 题目数量：{}, 排序后题目类型顺序：{}",
                 id, questions.size(),
                 questions.stream().map(Question::getType).collect(Collectors.toList()));
 

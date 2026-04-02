@@ -3,4 +3,68 @@
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.ooj.exam.mapper.QuestionMapper">
+
+    <resultMap id="detailQuestionMap" type="com.ooj.exam.entity.Question">
+        <!-- 主键映射 -->
+        <id column="id" property="id" />
+
+        <result column="paper_score" property="paperScore" />
+        <result column="title" property="title" />
+        <result column="type" property="type" />
+        <result column="multi" property="multi" />
+        <result column="category_id" property="categoryId" />
+        <result column="difficulty" property="difficulty" />
+        <result column="score" property="score" />
+        <result column="analysis" property="analysis" />
+        <result column="create_time" property="createTime" />
+        <result column="update_time" property="updateTime" />
+        <result column="is_deleted" property="isDeleted" />
+
+        <!-- 关联映射：Answer -->
+        <association property="answer" javaType="com.ooj.exam.entity.QuestionAnswer">
+            <id column="qas_id" property="id" />
+            <result column="answer" property="answer" />
+            <result column="keywords" property="keywords" />
+            <result column="qas_create_time" property="createTime" />
+            <result column="qas_update_time" property="updateTime" />
+            <result column="qas_question_id" property="questionId" />
+        </association>
+
+        <!-- 集合映射：Choices -->
+        <collection property="choices" ofType="com.ooj.exam.entity.QuestionChoice">
+            <id column="qcs_id" property="id" />
+            <result column="content" property="content" />
+            <result column="is_correct" property="isCorrect" />
+            <result column="sort" property="sort" />
+            <result column="qcs_create_time" property="createTime" />
+            <result column="qcs_update_time" property="updateTime" />
+            <result column="qcs_question_id" property="questionId" />
+        </collection>
+    </resultMap>
+
+    <select id="customQueryQuestionListByPaperId" resultMap="detailQuestionMap">
+        select  pq.score paper_score,
+                qs.*,
+                qas.id qas_id,
+                qas.question_id qas_question_id,
+                qas.answer,
+                qas.keywords,
+                qas.create_time qas_create_time,
+                qas.update_time qas_update_time,
+                qcs.id qcs_id,
+                qcs.question_id qcs_question_id,
+                qcs.content,
+                qcs.is_correct,
+                qcs.sort,
+                qcs.create_time qcs_create_time,
+                qcs.update_time qcs_update_time
+        from paper_question pq
+        join questions qs on pq.question_id = qs.id
+        join question_answers qas on qs.id = qas.question_id
+        left join question_choices qcs on qs.id = qcs.question_id and qcs.is_deleted = 0
+        where pq.is_deleted = 0 and qs.is_deleted = 0 and qas.is_deleted = 0 and pq.paper_id = #{paperId}
+        order by qcs.sort asc
+    </select>
+
+
 </mapper>
