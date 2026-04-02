@@ -62,7 +62,7 @@ public class PaperController {
     @GetMapping("/{id}")  // 处理 GET 请求
     @Operation(summary = "获取试卷详情", description = "获取试卷的详细信息，包括试卷基本信息和包含的所有题目")  // API描述
     public Result<Paper> getPaperById(@Parameter(description = "试卷 ID") @PathVariable Integer id) {
-        Paper paper = paperService.getPaperDetail(id);
+        Paper paper = paperService.getPaperById(id);
         return Result.success(paper);
     }
 
@@ -119,7 +119,9 @@ public class PaperController {
     @PostMapping("/ai")  // 处理POST请求
     @Operation(summary = "AI智能组卷", description = "基于设定的规则（题型分布、难度配比等）使用AI自动生成试卷")  // API描述
     public Result<Paper> createPaperWithAI(@RequestBody AiPaperVo aiPaperVo) {
-        return Result.success(null, "AI智能组卷成功");
+        Paper paper = paperService.createPaperWithAI(aiPaperVo);
+
+        return Result.success(paper, "AI智能组卷成功");
     }
 
 
@@ -133,7 +135,6 @@ public class PaperController {
     @Operation(summary = "删除试卷", description = "删除指定的试卷，注意：已发布的试卷不能删除")  // API描述
     public Result<Void> deletePaper(@Parameter(description = "试卷ID") @PathVariable Integer id) {
         // 检查试卷是否存在  // 验证试卷存在性
-
-        return Result.error("试卷删除失败");
-    }
+        paperService.deletePaper(id);
+        return Result.success(null, "试卷删除成功");    }
 } 

@@ -2,6 +2,7 @@ package com.ooj.exam.service;
 
 import com.ooj.exam.entity.Paper;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.ooj.exam.vo.AiPaperVo;
 import com.ooj.exam.vo.PaperVo;
 
 /**
@@ -35,5 +36,18 @@ public interface PaperService extends IService<Paper> {
      * @param id 试卷 ID
      * @return 试卷详情
      */
-    Paper getPaperDetail(Integer id);
-} 
+    Paper getPaperById(Integer id);
+
+    /**
+     * ai智能组卷
+     * @param aiPaperVo
+     * @return
+     */
+    Paper createPaperWithAI(AiPaperVo aiPaperVo);
+
+    /**
+     * 删除试卷
+     * @param id 试卷 ID
+     */
+    void deletePaper(Integer id);
+}
