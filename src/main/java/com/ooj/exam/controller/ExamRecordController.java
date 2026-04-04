@@ -2,6 +2,8 @@ package com.ooj.exam.controller;
 
 import com.ooj.exam.common.Result;
 import com.ooj.exam.entity.ExamRecord;
+import com.ooj.exam.service.ExamRecordService;
+import com.ooj.exam.service.ExamService;
 import com.ooj.exam.vo.ExamRankingVO;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -24,6 +26,10 @@ import java.util.List;
 @Tag(name = "考试记录管理", description = "考试记录相关操作，包括记录查询、成绩管理、排行榜展示等功能")  // Swagger API分组
 public class ExamRecordController {
 
+    @Autowired
+    private ExamRecordService examRecordService;
+    @Autowired
+    private ExamService examService;
 
 
     /**
@@ -40,8 +46,10 @@ public class ExamRecordController {
             @Parameter(description = "开始日期，格式：yyyy-MM-dd") @RequestParam(required = false) String startDate,
             @Parameter(description = "结束日期，格式：yyyy-MM-dd") @RequestParam(required = false) String endDate
     ) {
+        Page<ExamRecord> examRecordPage = new Page<>(page, size);
+        examRecordService.getExamRecordsByPage(examRecordPage, studentName, status, startDate, endDate);
 
-        return Result.success(null);
+        return Result.success(examRecordPage);
     }
 
     /**
@@ -52,7 +60,7 @@ public class ExamRecordController {
     public Result<ExamRecord> getExamRecordById(
             @Parameter(description = "考试记录ID") @PathVariable Integer id) {
 
-        return Result.success(null);
+        return Result.success(examService.getExamRecordById(id));
     }
 
     /**
@@ -62,8 +70,8 @@ public class ExamRecordController {
     @Operation(summary = "删除考试记录", description = "根据ID删除指定的考试记录")  // API描述
     public Result<Void> deleteExamRecord(
             @Parameter(description = "考试记录ID") @PathVariable Integer id) {
-
-         return Result.error("删除失败");
+        examRecordService.removeExamRecordById(id);
+        return Result.success(null);
     }
 
     /**
@@ -81,7 +89,8 @@ public class ExamRecordController {
             @Parameter(description = "显示数量限制，可选，不传则返回所有记录") @RequestParam(required = false) Integer limit
     ) {
         // 使用优化的查询方法，避免N+1查询问题
+        List<ExamRankingVO> rankingList =  examRecordService.getExamRanking(paperId, limit);
 
-        return Result.success(null);
+        return Result.success(rankingList);
     }
 } 

@@ -184,7 +184,8 @@ public class PaperServiceImpl extends ServiceImpl<PaperMapper, Paper> implements
         // 1. 查询试卷基本信息
         Paper paper = this.getById(id);
         if (paper == null) {
-            throw new IllegalArgumentException("试卷不存在");
+            log.warn("查询试卷 {} 失败，试卷不存在", id);
+            return null;
         }
         //2.questionMapper定义一个多表查询， 根据试卷id查询对应的题目集合
         List<Question> questions = questionMapper.customQueryQuestionListByPaperId(id);

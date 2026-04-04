@@ -3,4 +3,30 @@
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.ooj.exam.mapper.ExamRecordMapper">
+
+    <select id="getExamRanking" resultType="com.ooj.exam.vo.ExamRankingVO">
+        SELECT
+        er.id AS id,
+        er.student_name AS studentName,
+        er.score AS score,
+        er.exam_id AS examId,
+        p.name AS paperName,
+        p.total_score AS paperTotalScore,
+        er.start_time AS startTime,
+        er.end_time AS endTime,
+        TIMESTAMPDIFF(MINUTE, er.start_time, er.end_time) AS duration
+        FROM exam_records er
+        LEFT JOIN paper p ON er.exam_id = p.id
+        WHERE er.status = '已批阅'
+        AND er.is_deleted = 0
+        AND p.is_deleted = 0
+        <if test="paperId !=null">
+            AND er.exam_id = #{paperId}
+        </if>
+        ORDER BY er.score DESC
+        <if test="limit != null">
+                LIMIT #{limit}
+        </if>
+    </select>
+
 </mapper>
