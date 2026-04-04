@@ -3,6 +3,7 @@ package com.ooj.exam.service;
 import com.ooj.exam.entity.ExamRecord;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.ooj.exam.vo.StartExamVo;
+import com.ooj.exam.vo.SubmitAnswerVo;
 
 import java.util.List;
 
@@ -24,5 +25,20 @@ public interface ExamService extends IService<ExamRecord> {
      */
     ExamRecord getExamRecordById(Integer id);
 
+
+    /**
+     * 提交考试答案 - 保存答题记录并更新考试状态
+     * @param examRecordId 考试记录 ID
+     * @param answers 答案列表
+     */
+    void submitExam(Integer examRecordId, List<SubmitAnswerVo> answers) throws InterruptedException;
+
+
+    /**
+     * AI 自动批阅试卷 - 批改选择题和判断题，计算总分
+     * @param examRecordId 考试记录 ID
+     * @return 批阅后的考试记录
+     */
+    ExamRecord gradeExamByAI(Integer examRecordId) throws InterruptedException;
 }
  

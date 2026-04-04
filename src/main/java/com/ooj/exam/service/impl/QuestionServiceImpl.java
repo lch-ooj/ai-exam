@@ -219,7 +219,6 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
         }
 
         Long questionId = question.getId();
-        System.out.println(question);
 
         // 3. 处理选择题：根据选项的 isCorrect 字段构建答案
         if ("CHOICE".equals(question.getType())) {
@@ -485,7 +484,6 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
         }
         for (QuestionImportVo importVo : questionImportVoList){
             try {
-                System.out.println("====================="+importVo);
                 Question question = questionImportVoToQuestion(importVo);
                 createQuestionWithDetails(question);
                 count++;

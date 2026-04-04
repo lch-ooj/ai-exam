@@ -187,10 +187,8 @@ public class PaperServiceImpl extends ServiceImpl<PaperMapper, Paper> implements
             throw new IllegalArgumentException("试卷不存在");
         }
         //2.questionMapper定义一个多表查询， 根据试卷id查询对应的题目集合
-        System.out.println(id);
         List<Question> questions = questionMapper.customQueryQuestionListByPaperId(id);
         log.info("查询试卷 {} 的题目成功，题目数量：{}", id, questions.size());
-        System.out.println(questions);
         if (questions == null || questions.isEmpty()){
             paper.setQuestions(new ArrayList<Question>());
             log.warn("试卷 {} 没有题目", id);

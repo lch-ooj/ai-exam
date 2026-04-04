@@ -36,8 +36,8 @@ minio:
 
 #用于打印框架生成的sql语句，便于调试
 mybatis-plus:
-  configuration:
-    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+#  configuration:
+#    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl # 打印sql日志
   global-config:
     db-config:
       # 逻辑删除配置
