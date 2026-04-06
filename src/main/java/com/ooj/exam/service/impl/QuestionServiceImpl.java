@@ -340,7 +340,6 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
     @Transactional(rollbackFor = Exception.class)
     public void deleteQuestionWithDetails(Long id) {
         // 1. 检查题目是否被试卷使用
-        //TODO 待试卷接口实现后验证
         LambdaQueryWrapper<PaperQuestion> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(PaperQuestion::getQuestionId, id);
         Long count = paperQuestionMapper.selectCount(wrapper);
@@ -361,6 +360,9 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
 
         // 4. 删除题目
         this.removeById(id);
+
+        // 5. 清理 Redis 缓存中的热门题目数据
+        redisUtils.zRemove(CacheConstants.POPULAR_QUESTIONS_KEY, id);
     }
 
     @Override

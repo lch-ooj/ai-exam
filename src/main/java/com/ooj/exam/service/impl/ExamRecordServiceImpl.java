@@ -3,6 +3,7 @@ package com.ooj.exam.service.impl;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.ooj.exam.entity.AnswerRecord;
 import com.ooj.exam.entity.ExamRecord;
+import com.ooj.exam.entity.Paper;
 import com.ooj.exam.mapper.ExamRecordMapper;
 import com.ooj.exam.service.AnswerRecordService;
 import com.ooj.exam.service.ExamRecordService;
@@ -87,10 +88,26 @@ public class ExamRecordServiceImpl extends ServiceImpl<ExamRecordMapper, ExamRec
             throw new RuntimeException("考试记录不存在");
         }
 
-        //2.状态判断：进行中的考试记录不能删除
+        //2.状态判断：进行中的考试记录不能删除（除非已超过考试时间）
         if ("进行中".equals(examRecord.getStatus())) {
-            log.warn("尝试删除进行中的考试记录，ID: {}", id);
-            throw new RuntimeException("正在进行中的考试不能删除");
+            // 获取试卷信息，检查是否超过考试时间
+            Paper paper = paperService.getPaperById(examRecord.getExamId());
+            if (paper != null && paper.getDuration() != null) {
+                // 计算考试应该结束的时间 = 开始时间 + 考试时长（分钟）
+                LocalDateTime shouldEndTime = examRecord.getStartTime().plusMinutes(paper.getDuration());
+
+                // 如果当前时间还未超过应该结束的时间，则不允许删除
+                if (LocalDateTime.now().isBefore(shouldEndTime)) {
+                    log.warn("尝试删除未超时的进行中考试记录，ID: {}, 应结束时间: {}", id, shouldEndTime);
+                    throw new RuntimeException("正在进行中的考试不能删除（距离考试结束还有时间）");
+                }
+
+                log.info("考试已超时，允许删除进行中的考试记录，ID: {}, 应结束时间: {}, 当前时间: {}",
+                        id, shouldEndTime, LocalDateTime.now());
+            } else {
+                log.warn("无法获取试卷或考试时长信息，ID: {}, examId: {}", id, examRecord.getExamId());
+                throw new RuntimeException("无法获取试卷信息，删除失败");
+            }
         }
 
         // 3. 删除关联的答题记录
