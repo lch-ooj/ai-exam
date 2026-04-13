@@ -129,7 +129,7 @@ public class QwenAiServiceImpl implements QwenAiService {
     }
 
     /**
-     * 调用Qwen API生成题目
+     * 调用 Qwen API 并且解析得到的结果content
      * @param prompt
      * @return
      * @throws InterruptedException
@@ -161,6 +161,7 @@ public class QwenAiServiceImpl implements QwenAiService {
                 userMessage.put("role", "user");
                 userMessage.put("content", prompt);
                 messages.add(userMessage);
+
                 requestBody.put("messages", messages);
 
                 String response = webClient.post()

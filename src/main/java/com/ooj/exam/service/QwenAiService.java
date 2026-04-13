@@ -18,7 +18,7 @@ public interface QwenAiService {
     String buildPrompt(AiGenerateRequestVo request);
 
     /**
-     * 调用Qwen API生成题目
+     * 调用 Qwen API 并且解析得到的结果content
      * @param prompt
      * @return 模型反馈结果
      */

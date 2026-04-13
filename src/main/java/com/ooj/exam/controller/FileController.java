@@ -71,9 +71,11 @@ public class FileController {
             // 设置缓存头  // 优化缓存策略
             response.setHeader("Cache-Control", "public, max-age=86400");  // 缓存1天
             
-            // 输出文件内容  // 返回文件数据
-            try (FileInputStream fis = new FileInputStream(file);
-                 OutputStream os = response.getOutputStream()) {
+            // 输出文件内容
+            // 返回文件数据
+            FileInputStream fis = new FileInputStream(file);
+            OutputStream os = response.getOutputStream();
+            try (fis; os) {
                 
                 byte[] buffer = new byte[8192];
                 int bytesRead;

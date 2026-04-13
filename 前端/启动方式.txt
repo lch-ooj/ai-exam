@@ -1,2 +1,0 @@
-在当前目录下打开cmd，输入npm run dev
-需要有nodejs环境

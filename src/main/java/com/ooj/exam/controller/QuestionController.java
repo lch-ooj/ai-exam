@@ -282,39 +282,10 @@ public class QuestionController {
      * @param size 返回题目数量，默认 10 条
      * @return 热门题目列表
      */
-    // TODO 待完善
     @GetMapping("/popular")
     @Operation(summary = "获取热门题目", description = "获取访问次数最多的热门题目，用于首页推荐展示")
     public Result<List<Question>> getPopularQuestions(
             @Parameter(description = "返回题目数量", example = "6") @RequestParam(defaultValue = "6") Integer size) {
-        /*try {
-            // 从 Redis 中获取热门题目 ID（按分数降序排列，取前 N 个）
-            Set<Object> popularQuestionIds = redisUtils.zReverseRange(CacheConstants.POPULAR_QUESTIONS_KEY, 0, size - 1);
-
-            if (popularQuestionIds == null || popularQuestionIds.isEmpty()) {
-                // 如果 Redis 中没有数据，返回最新创建的题目
-                List<Question> questions = questionService.getQuestionList(1, size, null, null, null, null).getRecords();
-                return Result.success(questions);
-            }
-
-            // 将 ID 转换为 Long 类型
-            List<Long> questionIds = popularQuestionIds.stream()
-                    .map(id -> Long.valueOf(id.toString()))
-                    .collect(Collectors.toList());
-
-            // 批量查询这些题目的详细信息
-            List<Question> questions = new ArrayList<>();
-            for (Long id : questionIds) {
-                Question question = questionService.getQuestionWithDetails(id);
-                if (question != null) {
-                    questions.add(question);
-                }
-            }
-
-            return Result.success(questions);
-        } catch (Exception e) {
-            return Result.error("获取热门题目失败：" + e.getMessage());
-        }*/
         List<Question> questions = questionService.getPopularQuestions(size);
 
         return Result.success(questions);

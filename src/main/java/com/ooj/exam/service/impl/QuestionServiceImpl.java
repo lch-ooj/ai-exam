@@ -430,10 +430,10 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
             //longlist有序，按照热度降序
             List<Long> longList = popularQuestionIds.stream()
                     .map(id -> Long.valueOf(id.toString()))
-                    .collect(Collectors.toList());
+                    .toList();
             //不能用list查询，可能改变顺序
             for (Long questionId : longList){
-                Question question = getQuestionWithDetails(questionId);
+                Question question = getById(questionId);
                 //校验：可能redis中有题目，但数据库中没有
                 if (question != null) {
                     questions.add(question);
@@ -458,7 +458,7 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
 
             List<Long> questionIds = restQuestions.stream().map(Question::getId).collect(Collectors.toList());
             for (Long questionId : questionIds){
-                Question question = getQuestionWithDetails(questionId);
+                Question question = getById(questionId);
                 questions.add(question);
             }
         }
